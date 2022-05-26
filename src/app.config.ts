@@ -1,5 +1,5 @@
 export default {
-  pages: ['pages/home/index', 'pages/date/index'],
+  pages: ['pages/index/index', 'pages/home/index'],
   window: {
     backgroundTextStyle: 'light',
     navigationBarBackgroundColor: '#fff',
@@ -15,14 +15,14 @@ export default {
       {
         pagePath: 'pages/home/index',
         text: '首页',
-        iconPath: './images/icon/home.png',
-        selectedIconPath: './images/icon/home_sel.png'
+        iconPath: 'public/favicon.png',
+        selectedIconPath: 'public/favicon.png'
       },
       {
-        pagePath: 'pages/date/index',
-        text: '日程',
-        iconPath: './images/icon/date.png',
-        selectedIconPath: './images/icon/date_sel.png'
+        pagePath: 'pages/index/index',
+        text: '首页',
+        iconPath: 'public/favicon.png',
+        selectedIconPath: 'public/favicon.png'
       }
     ],
     position: 'bottom',

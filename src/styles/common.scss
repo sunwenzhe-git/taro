@@ -1,4 +1,5 @@
 @import './custom-theme.scss';
+
 body * {
   box-sizing: border-box;
   flex-shrink: 0;
@@ -11,6 +12,15 @@ body {
     Arial, PingFang SC-Light, Microsoft YaHei;
   margin: 0;
   padding: 0;
+  font-size: 28px;
+}
+
+page {
+  font-family: PingFangSC-Regular, Roboto, Helvetica Neue, Helvetica, Tahoma,
+    Arial, PingFang SC-Light, Microsoft YaHei;
+  margin: 0;
+  padding: 0;
+  font-size: 28px;
 }
 
 .flex {
