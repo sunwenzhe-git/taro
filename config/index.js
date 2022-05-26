@@ -76,7 +76,7 @@ const config = {
   copy: {
     patterns: [
       {
-        from: 'public/',
+        from: 'src/public/',
         to: `dist/${process.env.TARO_ENV}/public/`,
         ignore: ['*.i3d']
       } // 指定需要 copy 的目录

@@ -1,5 +1,5 @@
 export default {
-  pages: ['pages/index/index', 'pages/home/index'],
+  pages: ['pages/Main/pages/index/index', 'pages/Main/pages/home/index'],
   window: {
     backgroundTextStyle: 'light',
     navigationBarBackgroundColor: '#fff',
@@ -13,13 +13,13 @@ export default {
     borderStyle: 'black',
     list: [
       {
-        pagePath: 'pages/home/index',
+        pagePath: 'pages/Main/pages/index/index',
         text: '首页',
         iconPath: 'public/favicon.png',
         selectedIconPath: 'public/favicon.png'
       },
       {
-        pagePath: 'pages/index/index',
+        pagePath: 'pages/Main/pages/home/index',
         text: '首页',
         iconPath: 'public/favicon.png',
         selectedIconPath: 'public/favicon.png'
@@ -27,5 +27,17 @@ export default {
     ],
     position: 'bottom',
     custom: false
-  }
+  },
+  subpackages: [
+    {
+      root: 'pages/moduleA',
+      name: 'moduleA',
+      pages: ['pages/test/index']
+    },
+    {
+      root: 'pages/moduleB',
+      name: 'moduleB',
+      pages: ['pages/test/index']
+    }
+  ]
 };
