@@ -1,34 +1,76 @@
-import { request } from '@tarojs/taro';
+import Taro, {
+  request,
+  getStorageSync,
+  hideLoading,
+  setStorageSync,
+  showToast,
+  hideToast,
+  reLaunch,
+  removeStorageSync
+} from '@tarojs/taro';
+import { isObject, isSupportWebp } from '@/utils';
+import { ENV } from '@/utils/enum';
 
+export interface IRequestData {
+  url: string;
+  data?: Object;
+  contentType?: string;
+  dataType?: string;
+  headers?: Array<{ key: string; value: string }>;
+  method?: RequestMethod;
+  options?: any;
+}
+// 定义可使用的Request方法
+type RequestMethod =
+  | 'OPTIONS'
+  | 'GET'
+  | 'HEAD'
+  | 'POST'
+  | 'PUT'
+  | 'DELETE'
+  | 'TRACE'
+  | 'CONNECT';
 const expire = { current: false };
-class ApiHttpRequest {
-  async httpRequest(url, data, method, headers?, showToast = true) {
-    const dscToken = getStorageSync({ key: 'token' }).data;
-    const xcw = getStorageSync({ key: 'isExchange' }).data;
-    Object.keys(data).forEach((item) => {
-      const key = data[item];
-      if (key === '' || key === null || key === undefined) {
-        delete data[item];
-      }
-    });
+class Request {
+  async httpRequest({
+    url,
+    data = {},
+    contentType = 'application/json',
+    headers = [],
+    dataType = 'json',
+    method = 'GET',
+    options
+  }: IRequestData) {
+    // const token = getStorageSync('token');
+    // Object.keys(data).forEach((item) => {
+    //   const key = data[item];
+    //   if (key === '' || key === null || key === undefined) {
+    //     delete data[item];
+    //   }
+    // });
 
-    const header = {
-      ...(headers || {}),
-      'Content-Type': 'application/json',
-      'xr': String(xcw),
-      'asac': 'D8M78F2ILS29TRCXHP70X8',
-      dscToken
+    let header = {
+      'Content-Type': contentType,
+      'X-SS-API-KEY': 'apiKey'
+      //   token,
     };
+    if (headers) {
+      headers.forEach((v) => {
+        header[v.key] = v.value;
+      });
+    }
+
     return new Promise((resolve, reject) => {
       request({
-        headers: header,
         url,
         method,
-        dataType: 'json',
+        dataType,
+        header,
         data,
+        ...options,
         success: (res) => {
-          const result = get(res, 'data', {});
-          const isSuccess = get(result, 'success');
+          const result = res.data;
+          const isSuccess = result?.success;
           if (isSuccess) {
             expire.current = false;
             resolve(result?.data);
@@ -43,35 +85,32 @@ class ApiHttpRequest {
               msg: message,
               code: result?.code || 500
             });
-            ENV.Web && loading.hideLoading();
+            ENV.Web && hideLoading();
 
-            if (showToast) {
-              toast.showToast(message);
+            if (options?.toastShow) {
+              showToast(message);
             }
           }
         },
-        fail: (err) => {
-          ENV.Web && loading.hideLoading();
-          const { code, message } = err?.data || {};
+        fail: (err: Taro.General.CallbackResult) => {
+          ENV.Web && hideLoading();
+          const { code, message } = err || {};
           if (code === '303' && !expire.current) {
-            removeStorage({ key: 'tenantId' });
+            removeStorageSync('tenantId');
             expire.current = true;
-            toast.hideToast();
-            Navigate.reLaunch({ url: '/pages/Main/pages/Index/index' });
+            hideToast();
+            reLaunch({ url: '/pages/Main/pages/Index/index' });
           }
-          if (code === '302') {
+          if (code === 'xxx') {
             const accountInfo = ENV.WeChat ? wx.getAccountInfoSync() : {};
             // env类型
             const wxEnv = accountInfo?.miniProgram?.envVersion;
-            wxEnv !== 'develop' && toast.hideToast();
+            wxEnv !== 'develop' && hideToast();
             return;
           }
-          if (code === '4003') {
-            Navigate.reLaunch({ url: '/pages/Main/pages/Home/index' });
-            setStorageSync({
-              key: 'balckUser',
-              data: true
-            });
+          if (code === 'xxxx') {
+            reLaunch({ url: '/pages/Main/pages/Home/index' });
+            setStorageSync('balckUser', true);
             return;
           }
           const msg = this.formatErrorMsg({ msg: message, flag: expire, code });
@@ -80,8 +119,8 @@ class ApiHttpRequest {
             msg,
             code: code ?? 400
           });
-          if (showToast) {
-            toast.showToast(msg);
+          if (options.toastShow) {
+            showToast(msg);
           }
         }
       });
@@ -90,23 +129,13 @@ class ApiHttpRequest {
 
   formatErrorMsg({ msg, flag, code }) {
     let result = msg;
-    if (String(code) === '3003' || !result || String(code) === '3002') {
-      result = CommonErrorCode.DEFAULT_ERROR;
-    }
-    if (String(code) === '9996') {
+    if (String(code) === 'xxx') {
       result = '系统超时';
     }
     if (flag?.current) {
       result = '正在重新连接';
     }
     return result;
-  }
-
-  async mtop(api: string, params?: any, headers?, PCENV?) {
-    return this.mtopRequest(api, params, headers, PCENV);
-  }
-  async http(url: string, params?: any, method?, headers?) {
-    return this.httpRequest(url, params || {}, method, headers, false);
   }
 
   /**
@@ -116,8 +145,8 @@ class ApiHttpRequest {
    * @param {*headers} headers
    * @return {*}
    */
-  async envRequest(api: string, params, method?, headers?, showToast = true) {
-    if (OssDataSheet.includes(params.methodName)) {
+  async envRequest(api: string, params, method?, headers?) {
+    if ('OssDataSheet'.includes(params.methodName)) {
       const newParam = params?.param ? JSON.parse(params?.param) : {};
       if (isObject(newParam) && !newParam?.ossImgProcessing) {
         newParam.ossImgProcessing = isSupportWebp()
@@ -126,21 +155,7 @@ class ApiHttpRequest {
       }
       params.param = JSON.stringify(newParam);
     }
-    const ddParams = params ? JSON.stringify(params) : {};
-
-    switch (getEnv()) {
-      case 'my':
-        return this.mtopRequest(api, params, method, headers);
-      case 'wx':
-        return this.httpRequest(api, params || {}, method, headers, showToast);
-      case 'web':
-        return this.httpRequest(api, params || {}, method, headers, showToast);
-      case 'dd':
-        return this.httpRequest(api, ddParams, method, headers, showToast);
-      default:
-        return Promise.reject();
-    }
   }
 }
 
-export default ApiHttpRequest;
+export default Request;

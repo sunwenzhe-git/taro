@@ -25,3 +25,4 @@ declare namespace NodeJS {
       | 'jd';
   }
 }
+declare const dd: any;

@@ -1,7 +1,4 @@
-import { log, toast } from './logger';
-import { toPage } from './page';
-
-export { log, toast, toPage };
+import { getSystemInfoSync } from '@tarojs/taro';
 
 /**
  * 判断用户浏览器终端信息
@@ -27,6 +24,38 @@ export const browser = () => {
   }
   return {};
 };
+export function isObject(value) {
+  return Object.prototype.toString.call(value) === '[object Object]';
+}
+// 是否是ios环境
+export function isIOS() {
+  return getSystemInfoSync()?.system?.indexOf('iOS') !== -1;
+}
+/**
+ * 判断浏览器是否支持webp格式
+ * @return {[Boolean]}
+ */
+export function isSupportWebp() {
+  let support = false;
+  const system = getSystemInfoSync();
+
+  try {
+    const iosSystemSupport =
+      isIOS() && Number(system.system?.split('.')?.[0].split(' ')?.[1]) > 14;
+    const androidSystemSupport =
+      system?.platform === 'android' &&
+      Number(system.system?.split('.')?.[0].split(' ')?.[1]) > 4;
+
+    support =
+      system?.platform === 'devtools' ||
+      androidSystemSupport ||
+      iosSystemSupport;
+  } catch (e) {
+    console.log(e);
+  }
+
+  return support;
+}
 /**
  * 转换为时间字符串
  * @param {(Object|string|number)} time
